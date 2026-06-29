@@ -1,48 +1,49 @@
 import streamlit as st
+import pandas as pd
 
-st.title("🌾 Taunsa Kissan AI Helper")
-user_input = st.text_input("Apna masla likho:")
+st.set_page_config(page_title="Kissan AI v2.0", layout="centered")
+st.title("🌾 Kissan AI ULTIMATE v2.0 - 176+ Masle")
+st.write("Ab Database System. Nayi fasal 1 minute me add karo.")
+
+# 1. CSV Load karo. Cache se app tez ho jayegi
+@st.cache_data
+def load_data():
+    df = pd.read_csv('fasal_masle.csv')
+    return df
+
+df = load_data()
+
+user_input = st.text_input("Fasal + masla likho: kapas, gandum, rice, piaz, tamatar...")
 
 if st.button("Hal Batao"):
-    text = user_input.lower()
-    
-    # ===== 15 PEELA WORDS =====
-    peela_words = ["peela", "peelay", "peely", "pely", "peelae", "pila", "peele", 
-                   "peel", "zard", "zardi", "peelapan", "pela", "peelepan", "peelai", "pelay"]
-    kapas_peela = "kapas" in text and any(word in text for word in peela_words)
-    
-    # ===== SUNDI KE 10 TARIQE =====
-    sundi_words = ["sundi", "keera", "suta", "bollworm", "armyworm", "larva", 
-                   "keere", "sundiyan", "american", "pink"] 
-    kapas_sundi = "kapas" in text and any(word in text for word in sundi_words)
-    
-    # ===== WHITEFLY KE 10 TARIQE =====
-    whitefly_words = ["whitefly", "safed", "makhi", "safed makhi", "bemari", "ju", 
-                      "phirni", "chitti", "safaid", "white fly"] 
-    kapas_whitefly = "kapas" in text and any(word in text for word in whitefly_words)
-    # ==============================
-
-    gandum_rash = "gandum" in text and ("rash" in text or "zang" in text)
-
-    if kapas_peela: 
-        st.success("**Hal:** Kapas ke peelay patty = Nitrogen ki kami. Urea 1 bag/acre + Imidacloprid spray.")
-    
-    elif gandum_rash:
-        st.success("**Hal:** Gandum ka rash = Zang hai. Tilt 250 EC ya Nativo ka spray karo.")
-    
-    elif kapas_sundi:
-        st.success("""**Hal: Sundi/Keera ka attack** 
-        1. **Pehchan:** Patty kha rahi ho ya sutta me surakh = Bollworm/Armyworm.
-        2. **Dawai:** Emamectin 1.9 EC @ 200ml/acre YA Lambda 2.5 EC @ 250ml/acre.
-        3. **Time:** Spray sirf shaam 4 baje ke baad. Subah spray na karein.
-        4. **Tip:** 1 baar Emamectin, agli baar Lambda. Rotate karna zaroori hai.""")
-    
-    elif kapas_whitefly:
-        st.success("""**Hal: Whitefly/Safed Makhi ka attack** 
-        1. **Pehchan:** Patty ulti karo, choti safed makhiyan urr rahi hongi. Patty chipchipi hai.
-        2. **Dawai Mix:** Pyriproxyfen 10.8 EC + Buprofezin 25 SC. Dono mix karke spray karein.
-        3. **Time:** Subah 9 baje se pehle ya shaam ko. Dhoop me spray waste hai.
-        4. **Tip:** Sirf 1 zehar se nahi maregi. Mix spray + 7 din baad repeat karein.""")
-    
+    if user_input:
+        text = user_input.lower()
+        
+        # 2. Fasal ka naam pakro
+        faslen = df['fasal'].unique()
+        found_fasal = None
+        for f in faslen:
+            if f in text:
+                found_fasal = f
+                break
+        
+        if found_fasal:
+            # 3. Us fasal ke sab masle nikalo
+            fasal_df = df[df['fasal'] == found_fasal]
+            
+            # 4. Pehchan_words me search karo
+            result_found = False
+            for index, row in fasal_df.iterrows():
+                words = row['pehchan_words'].split(',')
+                if any(word.strip() in text for word in words):
+                    st.error(f"**[{found_fasal.upper()}{row['masla_id']}] {row['naam']}**")
+                    st.success(f"**Hal:** {row['hal']}")
+                    result_found = True
+                    break # 1 masla mil gaya bas
+            
+            if not result_found:
+                st.info(f"**{found_fasal}** ke {len(fasal_df)} masle database me hain. Keyword change karo.")
+        else:
+            st.warning(f"Fasal nahi mili. Ye faslen hain: {', '.join(faslen)}")
     else:
-        st.info(f"Ye masla abhi database me nahi hai. Aap ne likha: '{user_input}'")
+        st.warning("Masla likho bhai g.")
