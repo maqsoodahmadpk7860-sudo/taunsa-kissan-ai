@@ -1,39 +1,49 @@
-# ===== LEHSAN KE 10 MASLE - BLOCK =====
-    is_lehsan = any(w in text for w in ["lehsan", "garlic"])
+import streamlit as st
+import pandas as pd
 
-    l_thrips_words = ["thrips lehsan", "safed nuqta"]
-    l_whiterot_words = ["white rot", "jar safed", "fungus lehsan"]
-    l_maggot_words = ["maggot lehsan", "jar keera"]
+st.set_page_config(page_title="Kissan AI v2.0", layout="centered")
+st.title("🌾 Kissan AI ULTIMATE v2.0 - 176+ Masle")
+st.write("Ab Database System. Nayi fasal 1 minute me add karo.")
 
-    if is_lehsan:
-        if any(w in text for w in l_whiterot_words):
-            st.error("**[LH4] White Rot** = SABSE KHATARNAK. Ilaj nahi. Agle saal zameen change karo. Beej treat karo.")
-        elif any(w in text for w in l_thrips_words):
-            st.error("**[LH1] Thrips** = Spinosad 120ml/acre. Har 7 din.")
-        elif any(w in text for w in l_maggot_words):
-            st.success("**[LH2] Maggot** = Chlorpyrifos flud.")
+# 1. CSV Load karo. Cache se app tez ho jayegi
+@st.cache_data
+def load_data():
+    df = pd.read_csv('fasal_masle.csv')
+    return df
+
+df = load_data()
+
+user_input = st.text_input("Fasal + masla likho: kapas, gandum, rice, piaz, tamatar...")
+
+if st.button("Hal Batao"):
+    if user_input:
+        text = user_input.lower()
+        
+        # 2. Fasal ka naam pakro
+        faslen = df['fasal'].unique()
+        found_fasal = None
+        for f in faslen:
+            if f in text:
+                found_fasal = f
+                break
+        
+        if found_fasal:
+            # 3. Us fasal ke sab masle nikalo
+            fasal_df = df[df['fasal'] == found_fasal]
+            
+            # 4. Pehchan_words me search karo
+            result_found = False
+            for index, row in fasal_df.iterrows():
+                words = row['pehchan_words'].split(',')
+                if any(word.strip() in text for word in words):
+                    st.error(f"**[{found_fasal.upper()}{row['masla_id']}] {row['naam']}**")
+                    st.success(f"**Hal:** {row['hal']}")
+                    result_found = True
+                    break # 1 masla mil gaya bas
+            
+            if not result_found:
+                st.info(f"**{found_fasal}** ke {len(fasal_df)} masle database me hain. Keyword change karo.")
         else:
-            st.info("Lehsan ka masla 10 me check karo.")
-
-# ===== TAMATAR KE 15 MASLE - BLOCK =====
-    is_tamatar = any(w in text for w in ["tamatar", "tomato", "tamata"])
-
-    t_borer_words = ["fruit borer", "sundi tamatar", "surakh"]
-    t_whitefly_words = ["whitefly tamatar", "tylcv", "patta lapet"]
-    t_late_words = ["late blight tamatar", "patta kala tamatar"]
-    t_wilt_words = ["bacterial wilt", "poda murjha", "tana doodh"]
-    t_calcium_words = ["calcium kami", "nichla kala", "end rot"]
-
-    if is_tamatar:
-        if any(w in text for w in t_borer_words):
-            st.error("**[TM1] Fruit Borer** = Emamectin 200ml + Spinosad 120ml mix. Har 5 din.")
-        elif any(w in text for w in t_whitefly_words):
-            st.error("**[TM10] TYLCV Virus** = Ilaj nahi. Whitefly roko Imida se. Beemar poda ukaro.")
-        elif any(w in text for w in t_late_words):
-            st.error("**[TM7] Late Blight** = Mancozeb+Metalaxyl har 5 din. Tamatar ka #1 fungus.")
-        elif any(w in text for w in t_wilt_words):
-            st.error("**[TM9] Bacterial Wilt** = Pani band. Khet khatam. Agle saal Beej change.")
-        elif any(w in text for w in t_calcium_words):
-            st.warning("**[TM12] Blossom End Rot** = Calcium Kami. Calcium spray + Pani balance karo.")
-        else:
-            st.info("Tamatar ka masla 15 me check karo.")
+            st.warning(f"Fasal nahi mili. Ye faslen hain: {', '.join(faslen)}")
+    else:
+        st.warning("Masla likho bhai g.")
