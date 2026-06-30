@@ -6,7 +6,7 @@ st.title("🌾 Kissan AI ULTIMATE v2.1 - Smart Search")
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv('fasal_masle.csv')
+    df = pd.read_csv('fasal-masle.csv')
     return df
 
 df = load_data()
