@@ -6,7 +6,10 @@ st.title("🌾 Kissan AI ULTIMATE v2.1 - Smart Search")
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv('fasal-masle.csv')
+ try:
+    df = pd.read_csv('fasal-masle.csv', encoding='utf-8')
+except UnicodeDecodeError:
+    df = pd.read_csv('fasal-masle.csv', encoding='latin1')
     return df
 
 df = load_data()
