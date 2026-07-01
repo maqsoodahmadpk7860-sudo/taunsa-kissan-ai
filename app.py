@@ -78,5 +78,5 @@ with tab2:
         else:
             st.warning("Is naam se koi beemari nahi mili. Photo wala tab try karo.")
 
-elif df.empty:
+if df.empty:
     st.error("Database khali hai. `fasal-masle.csv` check karo.")
