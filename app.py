@@ -44,6 +44,7 @@ with tab1:
                 3. 2 Line me aasan Hal btao Urdu me.
                 4. 1 Dawai ka naam btao.
                 Jawab sirf Urdu me do, list ki shakal me."""
+                model_vision = genai.GenerativeModel('gemini-1.5-flash')
                 response = model_vision.generate_content([prompt, image])
                 st.success("**AI ka Jawab:**")
                 st.markdown(response.text)
